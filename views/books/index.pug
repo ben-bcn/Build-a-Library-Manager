@@ -1,6 +1,22 @@
-extends layout.pug
+extends /views/layout.pug
 
 block content
   h1 Books
-  include includes/books_header.pug
-  
+  include /views/includes/books_header.pug
+
+  table
+      thead
+        tr
+          th Title
+          th Author
+          th Genre
+          th Year Released
+
+          tbody
+            each val in books
+              tr
+                td
+                  a(href=`detail/${val.id}`)= val.title
+                td= val.author
+                td= val.genre
+                td= val.first_published

@@ -1,0 +1,26 @@
+extends /views/layout.pug
+
+block content
+  h1= `Patron: Return Book: ${book.title}`
+
+  include /views/errors
+
+  <p
+    strong Book Title:
+    | Harry Potter and the Goblet of Fire
+  p
+    strong Loaned By:
+    | Andrew Chalkley
+  p
+    strong Loaned On:
+    | 2015-12-11
+  p
+    strong Return By:
+    | 2015-12-18
+  form(action='/loans', method='post')
+    p
+      label(for="returned_on") Returned on:
+      input(id="returned_on" type="text" value="2020-10-10")
+    p
+      input(type="submit" value="Return Book")
+  </form>

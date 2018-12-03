@@ -7,9 +7,14 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     library_id: DataTypes.STRING,
     zip_code: DataTypes.INTEGER
-  }, {});
-  Patron.associate = function(models) {
-    // associations can be defined here
-  };
+  }, {
+    timestamps: false
+});
+Patron.associate = function(models) {
+  // associations can be defined here
+  Patron.hasMany(models.Loan, {
+    foreignKey: 'patron_id'
+  })
+};
   return Patron;
 };

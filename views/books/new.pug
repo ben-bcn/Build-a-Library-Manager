@@ -1,0 +1,9 @@
+extends /views/layout.pug
+
+block content
+  h1= title
+
+  include /views/errors
+
+  form(action='/books', method='post')
+    include /views/books/form

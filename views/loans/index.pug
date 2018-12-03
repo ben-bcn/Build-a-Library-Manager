@@ -1,0 +1,31 @@
+extends /views/layout.pug
+
+block content
+  h1 Loans
+  include /views/includes/loans_header.pug
+
+  table
+      thead
+        tr
+          th Book
+          th Patron
+          th Loaned on
+          th Returned by
+          th Returned on
+          th Action
+
+          tbody
+            each val in loans
+              tr
+                td
+                  a(href=`/books/detail/${val.Book.id}`)= val.Book.title
+                td
+                  a(href=`/patrons/${val.patron_id}`) #{val.Patron.first_name} #{val.Patron.last_name}
+                td= val.loaned_on
+                td= val.return_by
+                td= val.returned_on
+                if val.returned_on
+                  td
+                else
+                  td
+                    a.button(href=`/books/return/${val.id}`) Return Book

@@ -1,9 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+var path = require('path');
+var connect = require('connect');
+var methodOverride = require('method-override');
 
 const app = express();
 
 // by default the /views folder will be used
+app.locals.basedir = __dirname;
+
+app.use(methodOverride('_method'));
 app.set('view engine', 'pug');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
@@ -12,9 +18,11 @@ app.use('/static',express.static('public'));
 // since our routes file is called index.js we don't need to add it to the path
 const mainRoutes = require('./routes');
 const books = require('./routes/books');
+const loans = require('./routes/loans');
 
 app.use(mainRoutes);
 app.use('/books',books);
+app.use('/loans',loans);
 
 
 // catching 404 errors & passing off to error handler middleware

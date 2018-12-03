@@ -1,11 +1,12 @@
-var express = require('express');
-var router = express.Router();
-var Book = require("../models").Book;
+const express = require('express');
+const router = express.Router();
+const Book = require("../models").Book;
+const Loan = require('../models').Loan;
+const Patron = require('../models').Patron;
 
 /* GET books listing. */
 router.get('/', function(req, res, next) {
-  Book.findAll({order: [["genre", "DESC"]]}).then(function(books){
-    // res.render("books/index", {books: books, title: "My Awesome Blog" });
+  Book.findAll({order: [["genre", "ASC"]]}).then(function(books){
     res.render("books/index", {books: books});
   }).catch(function(error){
       //res.send(500, error);
@@ -16,7 +17,7 @@ router.get('/', function(req, res, next) {
 /* POST create book. */
 router.post('/', function(req, res, next) {
   Book.create(req.body).then(function(book) {
-    res.redirect("/books/" + book.id);
+    res.redirect("/books/");
   }).catch(function(error){
       if(error.name === "SequelizeValidationError") {
         res.render("books/new", {book: Book.build(req.body), errors: error.errors, title: "New Book"})
@@ -24,27 +25,38 @@ router.post('/', function(req, res, next) {
         throw error;
       }
   }).catch(function(error){
-      res.send(500, error);
+      res.status(500).send(error);
    });
-;});
+});
 
 /* Create a new book form. */
 router.get('/new', function(req, res, next) {
-  res.render("books/new", {book: {}, title: "New Book"});
+  res.render("books/new", {book: {}, title: "New Book", formBt: "Create New Book"});
 });
 
 /* Edit book form. */
-router.get("/:id/edit", function(req, res, next){
-  Book.findById(req.params.id).then(function(book){
-    if(book) {
-      res.render("books/edit", {book: book, title: "Edit Book"});
-    } else {
-      res.send(404);
-    }
-  }).catch(function(error){
-      res.send(500, error);
-   });
-});
+router.get('/detail/:id', (req, res) => {
+    Book.findByPk(req.params.id, {
+        include: [
+            {
+                model: Loan,
+                include: [
+                    Patron
+                ]
+            }
+        ]
+    })
+    .then( book => {
+        if(book){
+            res.render('books/edit', {book: book})
+        } else {
+            res.send(404)
+        }
+    })
+    .catch( error => {
+        console.log(error);
+    })
+})
 
 
 /* Delete book form. */
@@ -83,7 +95,8 @@ router.put("/:id", function(req, res, next){
       res.send(404);
     }
   }).then(function(book){
-    res.redirect("/books/" + book.id);
+    // res.redirect("/books/" + book.id);
+    res.redirect("/books/");
   }).catch(function(error){
       if(error.name === "SequelizeValidationError") {
         var book = Book.build(req.body);
