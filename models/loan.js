@@ -62,18 +62,6 @@ module.exports = (sequelize, DataTypes) => {
     })
   };
 
-  Loan.prototype.loanedOn = function() {
-    console.log('executing loanedOn');
-    return dateFormat(this.loaned_on, "YYYY-mm-dd");
-  };
-
-  Loan.prototype.returnedOn = function() {
-    console.log('executing returnedOn');
-    return dateFormat(this.returned_on , "YYYY-mm-dd");
-  };
-
-  Loan.prototype.returnBy = function() {
-    return dateFormat(this.return_by, "YYYY-mm-dd");
-  };
+  
   return Loan;
 };
