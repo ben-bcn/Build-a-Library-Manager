@@ -19,10 +19,12 @@ app.use('/static',express.static('public'));
 const mainRoutes = require('./routes');
 const books = require('./routes/books');
 const loans = require('./routes/loans');
+const patrons = require('./routes/patrons');
 
 app.use(mainRoutes);
 app.use('/books',books);
 app.use('/loans',loans);
+app.use('/patrons',patrons);
 
 
 // catching 404 errors & passing off to error handler middleware

@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     loaned_on: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       validate:{
         isDate:{
           msg: 'Loaned on must be a valid date'
@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     return_by: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       validate:{
         isDate:{
           msg: 'Return by must be a valid date'
@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     returned_on: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       validate:{
         isDate:{
           msg: 'Returned on must be a valid date'
@@ -62,6 +62,18 @@ module.exports = (sequelize, DataTypes) => {
     })
   };
 
-  
+  Loan.prototype.loanedOn = function() {
+    console.log('executing loanedOn');
+    return dateFormat(this.loaned_on, "YYYY-mm-dd");
+  };
+
+  Loan.prototype.returnedOn = function() {
+    console.log('executing returnedOn');
+    return dateFormat(this.returned_on , "YYYY-mm-dd");
+  };
+
+  Loan.prototype.returnBy = function() {
+    return dateFormat(this.return_by, "YYYY-mm-dd");
+  };
   return Loan;
 };

@@ -1,0 +1,39 @@
+extends /views/layout.pug
+
+block content
+  h1= `Patron: ${patron.first_name} ${patron.last_name}`
+
+  include /views/errors
+
+  form(action="/patrons/ " + patron.id + "?_method=PUT", method='post')
+    include /views/patrons/form
+
+  h2 Loan History
+  if(patron.Loans && patron.Loans.length > 0)
+    table
+        thead
+          tr
+            th Book
+            th Patron
+            th Loaned on
+            th Return by
+            th Returned on
+            th Action
+
+            tbody
+              each loan in patron.Loans
+                tr
+                  td
+                    a(href=`detail/${loan.Book.id}`)= loan.Book.title
+                  td
+                    a(href=`/patrons/${loan.patron_id}`) #{patron.first_name} #{patron.last_name}
+                  td= loan.loaned_on
+                  td= loan.return_by
+                  td= loan.returned_on
+                  if loan.returned_on
+                    td
+                  else
+                    td
+                      a.button(href=`/books/return/${loan.id}`) Return Book
+  else
+    h3 This book has no loan history

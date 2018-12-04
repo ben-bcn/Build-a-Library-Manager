@@ -14,23 +14,23 @@ const createToday = () => {
     return moment().format('YYYY-MM-DD'); ;
 }
 
-/* GET books listing. */
+/* GET patrons listing. */
 router.get('/', function(req, res, next) {
-  Book.findAll({order: [["genre", "ASC"]]}).then(function(books){
-    res.render("books/index", {books: books});
+  Patron.findAll({order: [["last_name", "ASC"]]}).then(function(patrons){
+    res.render("patrons/index", {patrons: patrons});
   }).catch(function(error){
       //res.send(500, error);
       res.status(500).send(error)
    });
 });
 
-/* POST create book. */
+/* POST create patron. */
 router.post('/', function(req, res, next) {
-  Book.create(req.body).then(function(book) {
-    res.redirect("/books/");
+  Patron.create(req.body).then(function(patron) {
+    res.redirect("/patrons/");
   }).catch(function(error){
       if(error.name === "SequelizeValidationError") {
-        res.render("books/new", {book: Book.build(req.body), errors: error.errors, title: "New Book"})
+        res.render("patrons/new", {patron: Patron.build(req.body), errors: error.errors, title: "New Book"})
       } else {
         throw error;
       }
@@ -39,26 +39,26 @@ router.post('/', function(req, res, next) {
    });
 });
 
-/* Create a new book form. */
+/* Create a new patron form. */
 router.get('/new', function(req, res, next) {
-  res.render("books/new", {book: {}, title: "New Book", formBt: "Create New Book"});
+  res.render("patrons/new", {patron: {}, title: "New Patron", formBt: "Create New Patron"});
 });
 
-/* Edit book form. */
+/* Edit patron form. */
 router.get('/detail/:id', (req, res) => {
-    Book.findByPk(req.params.id, {
+    Patron.findByPk(req.params.id, {
         include: [
             {
                 model: Loan,
                 include: [
-                    Patron
+                    Book
                 ]
             }
         ]
     })
-    .then( book => {
-        if(book){
-            res.render('books/edit', {book: book})
+    .then( patron => {
+        if(patron){
+            res.render('patrons/edit', {patron: patron})
         } else {
             res.send(404)
         }
@@ -69,11 +69,11 @@ router.get('/detail/:id', (req, res) => {
 })
 
 
-/* Delete book form. */
+/* Delete patron form. */
 router.get("/:id/delete", function(req, res, next){
-  Book.findById(req.params.id).then(function(book){
-    if(book) {
-      res.render("books/delete", {book: book, title: "Delete Book"});
+  Patron.findById(req.params.id).then(function(patron){
+    if(patron) {
+      res.render("patrons/delete", {patron: patron, title: "Delete Patron"});
     } else {
       res.send(404);
     }
@@ -83,11 +83,11 @@ router.get("/:id/delete", function(req, res, next){
 });
 
 
-/* GET individual book. */
+/* GET individual patron. */
 router.get("/:id", function(req, res, next){
-  Book.findById(req.params.id).then(function(book){
-    if(book) {
-      res.render("books/show", {book: book, title: book.title});
+  Patron.findById(req.params.id).then(function(patron){
+    if(patron) {
+      res.render("patrons/show", {patron: patron, title: patron.title});
     } else {
       res.send(404);
     }
@@ -96,14 +96,14 @@ router.get("/:id", function(req, res, next){
    });
 });
 
-/* GET book and loan for return. */
+/* GET patron and loan for return. */
 router.get("/return/:id", function(req, res, next){
   Loan.findByPk(req.params.id, {
       include: [Book, Patron]
     })
   .then(function(loan){
     if(loan) {
-      res.render("books/return", {loan: loan, today: createToday(), inOneYear: addDays(365), yearAgo: addDays(-365)});
+      res.render("patrons/return", {loan: loan, today: createToday(), inOneYear: addDays(365), yearAgo: addDays(-365)});
     } else {
       console.log("beeb");
       res.send(404);
@@ -113,22 +113,22 @@ router.get("/return/:id", function(req, res, next){
    });
 });
 
-/* PUT update book. */
+/* PUT update patron. */
 router.put("/:id", function(req, res, next){
-  Book.findById(req.params.id).then(function(book){
-    if(book) {
-      return book.update(req.body);
+  Patron.findById(req.params.id).then(function(patron){
+    if(patron) {
+      return patron.update(req.body);
     } else {
       res.send(404);
     }
-  }).then(function(book){
-    // res.redirect("/books/" + book.id);
-    res.redirect("/books/");
+  }).then(function(patron){
+    // res.redirect("/patrons/" + patron.id);
+    res.redirect("/patrons/");
   }).catch(function(error){
       if(error.name === "SequelizeValidationError") {
-        var book = Book.build(req.body);
-        book.id = req.params.id;
-        res.render("books/edit", {book: book, errors: error.errors, title: "Edit Book"})
+        var patron = Patron.build(req.body);
+        patron.id = req.params.id;
+        res.render("patrons/edit", {patron: patron, errors: error.errors, title: "Edit Book"})
       } else {
         throw error;
       }
@@ -137,16 +137,16 @@ router.put("/:id", function(req, res, next){
    });
 });
 
-/* DELETE individual book. */
+/* DELETE individual patron. */
 router.delete("/:id", function(req, res, next){
-  Book.findById(req.params.id).then(function(book){
-    if(book) {
-      return book.destroy();
+  Book.findById(req.params.id).then(function(patron){
+    if(patron) {
+      return patron.destroy();
     } else {
       res.send(404);
     }
   }).then(function(){
-    res.redirect("/books");
+    res.redirect("/patrons");
   }).catch(function(error){
       res.send(500, error);
    });

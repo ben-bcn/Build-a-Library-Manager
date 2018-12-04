@@ -1,0 +1,24 @@
+extends /views/layout.pug
+
+block content
+  h1 Patrons
+  include /views/includes/patrons_header.pug
+
+  table
+      thead
+        tr
+          th Name
+          th Address
+          th Email
+          th Library ID
+          th Zip
+
+          tbody
+            each val in patrons
+              tr
+                td
+                  a(href=`detail/${val.id}`) #{val.first_name} #{val.last_name}
+                td= val.address
+                td= val.email
+                td= val.library_id
+                td= val.zip_code
