@@ -24,9 +24,9 @@ block content
               each loan in book.Loans
                 tr
                   td
-                    a(href=`detail/${book.id}`)= book.title
+                    a(href=`/books/detail/${book.id}`)= book.title
                   td
-                    a(href=`/patrons/${loan.patron_id}`) #{loan.Patron.first_name} #{loan.Patron.last_name}
+                    a(href=`/patrons/detail/${loan.patron_id}`) #{loan.Patron.first_name} #{loan.Patron.last_name}
                   td= loan.loaned_on
                   td= loan.return_by
                   td= loan.returned_on

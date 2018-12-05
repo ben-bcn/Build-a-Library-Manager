@@ -24,9 +24,9 @@ block content
               each loan in patron.Loans
                 tr
                   td
-                    a(href=`detail/${loan.Book.id}`)= loan.Book.title
+                    a(href=`/books/detail/${loan.Book.id}`)= loan.Book.title
                   td
-                    a(href=`/patrons/${loan.patron_id}`) #{patron.first_name} #{patron.last_name}
+                    a(href=`/patrons/detail/${loan.patron_id}`) #{patron.first_name} #{patron.last_name}
                   td= loan.loaned_on
                   td= loan.return_by
                   td= loan.returned_on
@@ -36,4 +36,4 @@ block content
                     td
                       a.button(href=`/books/return/${loan.id}`) Return Book
   else
-    h3 This book has no loan history
+    h3 This Patron has no loan history

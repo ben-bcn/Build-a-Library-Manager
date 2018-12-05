@@ -1,9 +1,10 @@
 const express = require('express');
-const router = express.Router();
-const Book = require("../models").Book;
-const Loan = require('../models').Loan;
-const Patron = require('../models').Patron;
-var moment = require('moment');
+const router  = express.Router();
+const Book    = require("../models").Book;
+const Loan    = require('../models').Loan;
+const Patron  = require('../models').Patron;
+var moment    = require('moment');
+const { Op }  = require('sequelize');
 
 //Date Functions
 const addDays = (days) => {
@@ -36,6 +37,48 @@ router.post('/', function(req, res, next) {
       }
   }).catch(function(error){
       res.status(500).send(error);
+   });
+});
+
+/* GET books listing for overdue books. */
+router.get('/overdue/', function(req, res, next) {
+  Book.findAll({
+    include: [{
+      model: Loan,
+      where: {
+        returned_on: null,
+        return_by: {
+          [Op.lt]: createToday()
+        }
+      }
+    }],
+    order: [["genre", "ASC"]]
+  }).then(function(books){
+    res.render("books/index", {books: books, subTitle: ': Overdue'});
+  }).catch(function(error){
+      //res.send(500, error);
+      res.status(500).send(error)
+   });
+});
+
+/* GET books listing for checkout books, using today at the pivot point. */
+router.get('/checked-out/', function(req, res, next) {
+  Book.findAll({
+    include: [{
+      model: Loan,
+      where: {
+        returned_on: null,
+        return_by: {
+          [Op.gt]: createToday()
+        }
+      }
+    }],
+    order: [["genre", "ASC"]]
+  }).then(function(books){
+    res.render("books/index", {books: books, subTitle: ': Checked Out (not overdue)'});
+  }).catch(function(error){
+      //res.send(500, error);
+      res.status(500).send(error)
    });
 });
 
@@ -105,7 +148,6 @@ router.get("/return/:id", function(req, res, next){
     if(loan) {
       res.render("books/return", {loan: loan, today: createToday(), inOneYear: addDays(365), yearAgo: addDays(-365)});
     } else {
-      console.log("beeb");
       res.send(404);
     }
   }).catch(function(error){
@@ -136,21 +178,5 @@ router.put("/:id", function(req, res, next){
       res.send(500, error);
    });
 });
-
-/* DELETE individual book. */
-router.delete("/:id", function(req, res, next){
-  Book.findById(req.params.id).then(function(book){
-    if(book) {
-      return book.destroy();
-    } else {
-      res.send(404);
-    }
-  }).then(function(){
-    res.redirect("/books");
-  }).catch(function(error){
-      res.send(500, error);
-   });
-});
-
 
 module.exports = router;

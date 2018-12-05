@@ -24,9 +24,9 @@ block content
             option(value=patron.id) #{patron.first_name} #{patron.last_name}
     p
       label(for='loaned_on') Loaned on:
-      input(id='loaned_on', name='loaned_on', type='text', value=today)
+      input(id='loaned_on', name='loaned_on', type="date",min=yearAgo, max=inOneYear, value=today)
     p
       label(for='return_by') Return by:
-      input(id='return_by', name='return_by', type='text', value=sevenDaysFromToday)
+      input(id='return_by', name='return_by', type="date",min=yearAgo, max=inOneYear, value=sevenDaysFromToday)
     p
       input(type='submit', value='Create New Loan')

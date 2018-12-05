@@ -1,9 +1,10 @@
 const express = require('express');
-const router = express.Router();
-const Book = require("../models").Book;
-const Loan = require('../models').Loan;
-const Patron = require('../models').Patron;
-var moment = require('moment');
+const router  = express.Router();
+const Book    = require("../models").Book;
+const Loan    = require('../models').Loan;
+const Patron  = require('../models').Patron;
+var moment    = require('moment');
+const { Op }  = require('sequelize');
 
 //Date Functions
 const addDays = (days) => {
@@ -32,7 +33,7 @@ router.post('/', function(req, res, next) {
       if(error.name === "SequelizeValidationError") {
         Promise.all([Book.findAll(), Patron.findAll()])
         .then( values => {
-            res.render('loans/new', {loan: Loan.build(req.body), errors: error.errors, allBooks: values[0], allPatrons: values[1], today: createToday(), sevenDaysFromToday: addDays(7)})
+            res.render('loans/new', {loan: Loan.build(req.body), errors: error.errors, allBooks: values[0], allPatrons: values[1], today: createToday(), sevenDaysFromToday: addDays(7), inOneYear: addDays(365), yearAgo: addDays(-365)})
         })
       } else {
         throw error;
@@ -42,19 +43,38 @@ router.post('/', function(req, res, next) {
    });
 });
 
-/* GET overdue loans listing. */
+/* GET overdue loans listing, using today at the pivot point. */
 router.get('/overdue/', function(req, res, next) {
   Loan.findAll({
     include: [Book,Patron],
     where: {
       returned_on: null,
       return_by: {
-        $gt: createToday()
+        [Op.lt]: createToday()
       }
     },
     order: [["loaned_on", "ASC"]]
   }).then(function(loans){
-    res.render("loans/index", {loans: loans});
+    res.render("loans/index", {loans: loans, subTitle: ': Overdue'});
+  }).catch(function(error){
+      //res.send(500, error);
+      res.status(500).send(error)
+   });
+});
+
+/* GET checkedout loans listing, using today at the pivot point. */
+router.get('/checked-out/', function(req, res, next) {
+  Loan.findAll({
+    include: [Book,Patron],
+    where: {
+      returned_on: null,
+      return_by: {
+        [Op.gt]: createToday()
+      }
+    },
+    order: [["loaned_on", "ASC"]]
+  }).then(function(loans){
+    res.render("loans/index", {loans: loans, subTitle: ': Checked Out (not overdue)'});
   }).catch(function(error){
       //res.send(500, error);
       res.status(500).send(error)
@@ -66,7 +86,7 @@ router.get('/new', function(req, res, next) {
   //Promise.all to wait for two queries to the database to finish before moving on
   Promise.all([Book.findAll(), Patron.findAll()])
   .then( values => {
-      res.render('loans/new', {loan: Loan.build(req.body), allBooks: values[0], allPatrons: values[1], today: createToday(), sevenDaysFromToday: addDays(7)})
+      res.render('loans/new', {loan: Loan.build(req.body), allBooks: values[0], allPatrons: values[1], today: createToday(), sevenDaysFromToday: addDays(7), inOneYear: addDays(365), yearAgo: addDays(-365)})
       //, addDays: addDays
   })
   .catch( error => {
@@ -77,14 +97,14 @@ router.get('/new', function(req, res, next) {
 /* Edit loan form. */
 router.get('/detail/:id', (req, res) => {
     Loan.findByPk(req.params.id, {
-        include: [
-            {
-                model: Book,
-                include: [
-                    Patron
-                ]
-            }
-        ]
+      include: [
+        {
+          model: Book,
+          include: [
+              Patron
+          ]
+        }
+      ]
     })
     .then( loan => {
         if(loan){
@@ -98,50 +118,26 @@ router.get('/detail/:id', (req, res) => {
     })
 })
 
-
-/* Delete loan form. */
-router.get("/:id/delete", function(req, res, next){
-  Loan.findById(req.params.id).then(function(loan){
-    if(loan) {
-      res.render("loans/delete", {loan: loan, title: "Delete Book"});
-    } else {
-      res.send(404);
-    }
-  }).catch(function(error){
-      res.send(500, error);
-   });
-});
-
-
-/* GET individual loan. */
-router.get("/:id", function(req, res, next){
-  Loan.findById(req.params.id).then(function(loan){
-    if(loan) {
-      res.render("loans/show", {loan: loan, title: loan.title});
-    } else {
-      res.send(404);
-    }
-  }).catch(function(error){
-      res.send(500, error);
-   });
-});
-
 /* PUT update loan. */
 router.put("/:id", function(req, res, next){
-  Loan.findByPk(req.params.id).then(function(loan){
+  Loan.findByPk(req.params.id, {
+      include: [Book, Patron]
+  }).then(function(loan){
     if(loan) {
       return loan.update(req.body);
     } else {
       res.send(404);
     }
   }).then(function(loan){
-    // res.redirect("/loans/" + loan.id);
     res.redirect("/loans/");
   }).catch(function(error){
+      console.log(error.name);
       if(error.name === "SequelizeValidationError") {
-        var loan = Loan.build(req.body);
-        loan.id = req.params.id;
-        res.render("loans/edit", {loan: loan, errors: error.errors, title: "Edit Book"})
+        // Reload the data we need to display the  return page + error message
+        Loan.findByPk(req.params.id, {include: [Book, Patron]
+        }).then(function(loan){
+          res.render("books/return", {loan: loan, errors: error.errors, today: createToday(), inOneYear: addDays(365), yearAgo: addDays(-365)});
+        });
       } else {
         throw error;
       }
@@ -149,21 +145,4 @@ router.put("/:id", function(req, res, next){
       res.send(500, error);
    });
 });
-
-/* DELETE individual loan. */
-router.delete("/:id", function(req, res, next){
-  Loan.findById(req.params.id).then(function(loan){
-    if(loan) {
-      return loan.destroy();
-    } else {
-      res.send(404);
-    }
-  }).then(function(){
-    res.redirect("/loans");
-  }).catch(function(error){
-      res.send(500, error);
-   });
-});
-
-
 module.exports = router;

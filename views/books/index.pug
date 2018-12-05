@@ -1,7 +1,7 @@
 extends /views/layout.pug
 
 block content
-  h1 Books
+  h1 Books#{subTitle}
   include /views/includes/books_header.pug
 
   table
@@ -16,7 +16,7 @@ block content
             each val in books
               tr
                 td
-                  a(href=`detail/${val.id}`)= val.title
+                  a(href=`/books/detail/${val.id}`)= val.title
                 td= val.author
                 td= val.genre
                 td= val.first_published

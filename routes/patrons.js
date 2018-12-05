@@ -137,20 +137,4 @@ router.put("/:id", function(req, res, next){
    });
 });
 
-/* DELETE individual patron. */
-router.delete("/:id", function(req, res, next){
-  Book.findById(req.params.id).then(function(patron){
-    if(patron) {
-      return patron.destroy();
-    } else {
-      res.send(404);
-    }
-  }).then(function(){
-    res.redirect("/patrons");
-  }).catch(function(error){
-      res.send(500, error);
-   });
-});
-
-
 module.exports = router;
